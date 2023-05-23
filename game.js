@@ -32,6 +32,12 @@ let mainGame = new Phaser.Class({
     },
 
     create: function() {
+        // Register Sound
+        this.flapSound = this.sound.add('flap');
+        this.hitSound = this.sound.add('hit');
+        this.gameEndSound = this.sound.add('game_end');
+
+
         let bg = this.add.image(0, 0, 'background');
         bg.setOrigin(0, 0);
         bg.displayWidth = this.sys.canvas.width;
@@ -48,11 +54,6 @@ let mainGame = new Phaser.Class({
         this.physics.pause();
 
         this.pointerDownListener = this.input.on('pointerdown', this.handlePointerDown, this);
-
-        // Register Sound
-        this.flapSound = this.sound.add('flap');
-        this.hitSound = this.sound.add('hit');
-        this.gameEndSound = this.sound.add('game_end');
 
         // text group
         this.mainMenuGroup = this.add.group();
@@ -139,9 +140,16 @@ let mainGame = new Phaser.Class({
     },
 
     endGame: function() {
+        if (this.dead)
+            return;
+
         this.canRestart = false;
         this.dead = true;
-        this.hitSound.play();
+
+        if ( !this.hitSound.isPlaying ){
+            this.hitSound.play();
+        }
+
         this.physics.pause();
         this.bird.setTint(0xff0000);
         this.tweens.add({

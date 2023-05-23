@@ -14,7 +14,7 @@ let mainGame = new Phaser.Class({
         this.dead = false;
         this.gameStarted = false;
         this.canRestart = true;
-        this.pipeGap = 1750;
+        this.pipeGap = window.innerWidth < window.innerHeight ? 1400 : 1400;
         this.pipeDelay = window.innerWidth < window.innerHeight ? 1000 : 1250;
         this.pointerDownListener = null;
         this.passedPipes = [];
@@ -113,10 +113,10 @@ let mainGame = new Phaser.Class({
         if (first) {
             pipeHolePosition = window.innerHeight / 2;
         } else {
-            pipeHolePosition = Phaser.Math.Between(50, window.innerHeight - 50);
+            pipeHolePosition = Phaser.Math.Between(300, window.innerHeight - 300);
         }
     
-        let xOffset = Phaser.Math.Between(50, 175);
+        let xOffset = Phaser.Math.Between(0, 50);
         let distanceMultiplier = 1;
         let heightMultiplier = 1;
     

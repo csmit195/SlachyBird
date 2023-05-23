@@ -15,7 +15,7 @@ let mainGame = new Phaser.Class({
         this.gameStarted = false;
         this.canRestart = true;
         this.pipeGap = 1000;
-        this.pipeDelay = window.innerWidth < window.innerHeight ? 1000 : 800;
+        this.pipeDelay = window.innerWidth < window.innerHeight ? 1000 : 1000;
         this.pointerDownListener = null;
         this.passedPipes = [];
     },

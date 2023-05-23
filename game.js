@@ -14,7 +14,7 @@ let mainGame = new Phaser.Class({
         this.dead = false;
         this.gameStarted = false;
         this.canRestart = true;
-        this.pipeGap = 1000;
+        this.pipeGap = 1750;
         this.pipeDelay = window.innerWidth < window.innerHeight ? 1000 : 1250;
         this.pointerDownListener = null;
         this.passedPipes = [];
@@ -47,6 +47,9 @@ let mainGame = new Phaser.Class({
         this.bird.setCircle(this.bird.width / 2);
         this.bird.body.gravity.y = 1500;
 
+        this.nametag = this.add.text(this.bird.x, this.bird.y - 65, 'Slachy', { fontSize: '24px', fill: '#ffffff', align: 'center' });
+        this.nametag.setOrigin(0.5);
+
         this.pipes = this.physics.add.group();
         this.physics.add.collider(this.bird, this.pipes, this.endGame, null, this);
 
@@ -70,7 +73,7 @@ let mainGame = new Phaser.Class({
         this.scoreText.setOrigin(1, 0);
 
         this.scoreText.depth = 1;
-        
+        this.nametag.depth = 1;
     },
 
     update: function() {
@@ -89,6 +92,9 @@ let mainGame = new Phaser.Class({
                 Phaser.Actions.IncX(this.pipes.getChildren(), -2);
             }
 
+            this.nametag.x = this.bird.x;
+            this.nametag.y = this.bird.y - 65;
+
             // Check if the bird has passed through a pipe
             this.pipes.getChildren().forEach((pipe) => {
                 if (pipe.x < this.bird.x && !this.passedPipes.includes(pipe)) {
@@ -101,24 +107,56 @@ let mainGame = new Phaser.Class({
 
     addPipes: function(first = false) {
         let pipeHolePosition;
+        let lastPipe = this.pipes.getLast(true);
     
+        // the sprite is 630px height, so we need to ensure it positions the gap properly
         if (first) {
-            pipeHolePosition = Math.floor(Math.random() * (window.innerHeight - this.pipeGap)) + (this.pipeGap / 2);
+            pipeHolePosition = window.innerHeight / 2;
         } else {
-            pipeHolePosition = Math.floor(Math.random() * (window.innerHeight - this.pipeGap)) + (this.pipeGap / 2);
+            pipeHolePosition = Phaser.Math.Between(50, window.innerHeight - 50);
         }
     
-        let upperPipe = this.pipes.create(window.innerWidth + 100, pipeHolePosition - (this.pipeGap / 2), 'pipe').setScale(2);
-        let lowerPipe = this.pipes.create(window.innerWidth + 100, pipeHolePosition + (this.pipeGap / 2), 'pipe').setScale(2);
+        let xOffset = Phaser.Math.Between(50, 175);
+        let distanceMultiplier = 1;
+        let heightMultiplier = 1;
+    
+        if (lastPipe) {
+            let lastPipeX = lastPipe.getBounds().right;
+            let lastPipeY = lastPipe.getBounds().top;
+            let lastPipeHeight = lastPipe.getBounds().height;
+    
+            let lastPipeDistance = window.innerWidth - lastPipeX;
+            let lastPipeYOffset = lastPipeY + lastPipeHeight / 2;
+    
+            if (lastPipeDistance < 200) {
+                distanceMultiplier = 2;
+            } else if (lastPipeDistance < 100) {
+                distanceMultiplier = 3;
+            }
+    
+            if (lastPipeYOffset < window.innerHeight / 2) {
+                heightMultiplier = 2;
+            } else if (lastPipeYOffset < window.innerHeight / 3) {
+                heightMultiplier = 3;
+            }
+        }
+    
+        xOffset *= distanceMultiplier;
+        pipeHolePosition *= heightMultiplier;
+    
+        // ensure the pipes are within the screen
+        let upperPipe = this.pipes.create(window.innerWidth + xOffset, pipeHolePosition - (this.pipeGap / 2), 'pipe').setScale(2);
+        let lowerPipe = this.pipes.create(window.innerWidth + xOffset, pipeHolePosition + (this.pipeGap / 2), 'pipe').setScale(2);
     
         upperPipe.angle = 180;
-
+    
         upperPipe.body.immovable = true;
         lowerPipe.body.immovable = true;
-
+    
         upperPipe.body.allowGravity = false;
         lowerPipe.body.allowGravity = false;
     },
+    
 
     incrementScore: function() {
         let passedPipe = false;
@@ -150,6 +188,7 @@ let mainGame = new Phaser.Class({
             this.hitSound.play();
         }
 
+        this.nametag.destroy();
         this.physics.pause();
         this.bird.setTint(0xff0000);
         this.tweens.add({
@@ -166,7 +205,6 @@ let mainGame = new Phaser.Class({
                 restartText.setInteractive();
                 this.canRestart = true;
                 this.gameover = true;
-                this.input.enabled = false;
             },
             callbackScope: this
         });
